@@ -1,3 +1,4 @@
+(require 'cl)
 (defun semantic-stickyfunc-fetch-stickyline ()
   "Make the function at the top of the current window sticky.
 Capture its function declaration, and place it in the header line.
@@ -108,3 +109,8 @@ If there is no function, disable the header line."
                                              (point))))
                      start-line))
                tags)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; stickyfunc-enhance.el ends here
+;; Local Variables:
+;; byte-compile-warnings: (not cl-functions)
+;; End:
