@@ -1,4 +1,50 @@
+;;; stickyfunc-enhance.el --- A refactoring tool based on Semantic parser framework
+;;
+;; Filename: stickyfunc-enhance.el
+;; Description: An enhancement to `semantic-stickyfunc-mode'
+;; Author: Tu, Do Hoang <tuhdo1710@gmail.com
+;; Maintainer: Tu, Do Hoang
+;; Created: Friday March 13
+;; Version: 0.1
+;; Package-Requires: ((emacs "24.3"))
+;; Keywords: c, languages, tools
+;; Compatibility: GNU Emacs: 24.3+
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Commentary:
+;;
+;; When enable, `semantic-stickyfunc-mode' shows the function point is
+;; currently in at the first line of the current buffer. This is
+;; useful when you have a very long function that spreads more than a
+;; screen, and you don't have to scroll up to read the function name
+;; and then scroll down to original position.
+;;
+;; However, one of the problem with current semantic-stickyfunc-mode
+;; is that it does not display all parameters that are scattered on
+;; multiple lines. To solve this problem, we need to redefine
+;; `semantic-stickyfunc-fetch-stickyline' function.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Code:
 (require 'cl)
+
 (defun semantic-stickyfunc-fetch-stickyline ()
   "Make the function at the top of the current window sticky.
 Capture its function declaration, and place it in the header line.
@@ -23,17 +69,16 @@ If there is no function, disable the header line."
                   (setq param-tags (semantic-tag-function-arguments tag))
                   (setq filtered-tags (semantic--tags-out-of-screen param-tags tag)) ;
                   (setq tmp-str (semantic-format-tag-prototype tag nil t))
-                  ;; (message "tmp-str :%s" tmp-str)
                   (if (and (= (length param-tags) (length filtered-tags))
                            (not (eq major-mode 'python-mode)))
                       tmp-str
                     (if (not (eq (semantic-tag-class tag) 'function))
                         tmp-str
                       (string-match (stickyfunc-enhance--parameters-regexp tag) tmp-str)
-                      (setq tmp-str (replace-match (stickyfunc-enhance--replace-match-text tag) t t tmp-str 0))
+                      (setq tmp-str (replace-match (stickyfunc-enhance--text-to-replace tag) t t tmp-str 0))
                       (dolist (v filtered-tags)
                         (setq tmp-str (concat tmp-str
-                                              (stickyfunc-enhance--function-argument-string v)
+                                              (stickyfunc-enhance--function-parameter-string v)
                                               (stickyfunc-enhance--function-argument-separator)))))
                     tmp-str)))))
            (start 0))
@@ -49,7 +94,15 @@ If there is no function, disable the header line."
         (setq str (replace-match "        " t t str 0)))
       str)))
 
-(defun stickyfunc-enhance--function-argument-string (tag)
+(defun stickyfunc-enhance--function-parameter-string (tag)
+  "Return a string of a parameter TAG to be displayed.
+
+It handles Python specifically along with other modes, because
+the stock Semantic formate functions do not display assigned
+values to parameters if there is any.
+
+Also handles a case if tag is stored a string, not a list, as
+returned by `semantic-tag-function-arguments' in Emacs Lisp mode."
   (cond
    ((eq major-mode 'python-mode)
     (save-excursion
@@ -71,6 +124,7 @@ If there is no function, disable the header line."
       (propertize tag 'face 'font-lock-variable-name-face)))))
 
 (defun stickyfunc-enhance--function-argument-separator ()
+  "Return a proper separator between parameter tags."
   (cond
    ((or (eq major-mode 'c-mode)
         (eq major-mode 'c++-mode))
@@ -80,7 +134,10 @@ If there is no function, disable the header line."
     " ")
    (t ",")))
 
-(defun stickyfunc-enhance--replace-match-text (tag)
+(defun stickyfunc-enhance--text-to-replace (tag)
+  "Text to replace a matched text of a TAG.
+
+To be used with `stickyfunc-enhance--parameters-regexp'"
   (cond
    ((or (eq major-mode 'c-mode)
         (eq major-mode 'c++-mode))
@@ -90,6 +147,9 @@ If there is no function, disable the header line."
    (t "(")))
 
 (defun stickyfunc-enhance--parameters-regexp (tag)
+  "Return parameter regexp of a function TAG.
+
+To be used with `stickyfunc-enhance--text-to-replace'"
   (cond
    ((or (eq major-mode 'c-mode)
         (eq major-mode 'c++-mode))
@@ -99,6 +159,11 @@ If there is no function, disable the header line."
    (t "(.*)")))
 
 (defun stickyfunc-enhance--tags-out-of-screen (tags parent-tag)
+  "Return a list of tags that are out of current visible screen.
+
+TAGS are a list of tags that are function parameters of PARENT-TAG.
+
+PARENT-TAG is a function."
   (let ((start-line (line-number-at-pos (window-start))))
     (remove-if (lambda (tag)
                  (>= (line-number-at-pos (if (listp tag)
