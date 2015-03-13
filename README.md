@@ -37,4 +37,5 @@ You only need to enable `semantic-mode` along with `semantic-stickyfunc-mode`:
 ```elisp
 (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode)
 (semantic-mode 1)
+(require 'stickyfunc-enhance)
 ```
