@@ -99,10 +99,12 @@ If there is no function, disable the header line."
                         tmp-str
                       (string-match (stickyfunc-enhance--parameters-regexp tag) tmp-str)
                       (setq tmp-str (replace-match (stickyfunc-enhance--text-to-replace tag) t t tmp-str 0))
-                      (dolist (v filtered-tags)
-                        (setq tmp-str (concat tmp-str
-                                              (stickyfunc-enhance--function-parameter-string v)
-                                              (stickyfunc-enhance--function-argument-separator)))))
+                      (if filtered-tags
+                          (dolist (v filtered-tags)
+                            (setq tmp-str (concat tmp-str
+                                                  (stickyfunc-enhance--function-parameter-string v)
+                                                  (stickyfunc-enhance--function-argument-separator))))
+                        (setq tmp-str (concat tmp-str ")"))))
                     tmp-str)))))
            (start 0))
       (while (string-match "%" str start)
