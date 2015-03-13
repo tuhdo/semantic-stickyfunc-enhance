@@ -200,6 +200,7 @@ PARENT-TAG is a function."
                                              (point))))
                      start-line))
                tags)))
+(provide 'stickyfunc-enhance)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; stickyfunc-enhance.el ends here
 ;; Local Variables:
