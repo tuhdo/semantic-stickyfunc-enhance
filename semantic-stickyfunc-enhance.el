@@ -1,7 +1,3 @@
-;; This buffer is for notes you don't want to save, and for Lisp evaluation.
-;; If you want to create a file, visit that file with C-x C-f,
-;; then enter the text in that file's own buffer.
-
 (defun semantic-stickyfunc-fetch-stickyline ()
   "Make the function at the top of the current window sticky.
 Capture its function declaration, and place it in the header line.
@@ -26,16 +22,18 @@ If there is no function, disable the header line."
                   (setq param-tags (semantic-tag-function-arguments tag))
                   (setq filtered-tags (semantic--tags-out-of-screen param-tags tag)) ;
                   (setq tmp-str (semantic-format-tag-prototype tag nil t))
-                  (if (= (length param-tags) (length filtered-tags))
+                  ;; (message "tmp-str :%s" tmp-str)
+                  (if (and (= (length param-tags) (length filtered-tags))
+                           (not (eq major-mode 'python-mode)))
                       tmp-str
-                    (string-match (semantic--parameters-regexp tag) tmp-str)
-                    (setq tmp-str (replace-match (semantic--replace-match-text tag) t t tmp-str 0))
-                    (dolist (v filtered-tags)
-                      (setq tmp-str (concat tmp-str
-                                            (if (listp v)
-                                                (semantic-format-tag-prototype v nil t)
-                                              (propertize v 'face 'font-lock-variable-name-face))
-                                            (semantic--function-argument-separator))))
+                    (if (not (eq (semantic-tag-class tag) 'function))
+                        tmp-str
+                      (string-match (stickyfunc-enhance--parameters-regexp tag) tmp-str)
+                      (setq tmp-str (replace-match (stickyfunc-enhance--replace-match-text tag) t t tmp-str 0))
+                      (dolist (v filtered-tags)
+                        (setq tmp-str (concat tmp-str
+                                              (stickyfunc-enhance--function-argument-string v)
+                                              (stickyfunc-enhance--function-argument-separator)))))
                     tmp-str)))))
            (start 0))
       (while (string-match "%" str start)
@@ -50,16 +48,38 @@ If there is no function, disable the header line."
         (setq str (replace-match "        " t t str 0)))
       str)))
 
-(defun semantic--function-argument-separator ()
+(defun stickyfunc-enhance--function-argument-string (tag)
+  (cond
+   ((eq major-mode 'python-mode)
+    (save-excursion
+      (let* ((tag-start (semantic-tag-start tag))
+             (next-tag (save-excursion
+                         (goto-char tag-start)
+                         (semantic-find-tag-by-overlay-next)))
+             (next-tag-start (if (not next-tag)
+                                 (search-forward ":")
+                               (semantic-tag-start next-tag))))
+        (string-trim
+         (replace-regexp-in-string "\\Ca.*"
+                                   ""
+                                   (buffer-substring tag-start
+                                                     next-tag-start))))))
+   (t
+    (if (listp tag)
+        (semantic-format-tag-prototype tag nil t)
+      (propertize tag 'face 'font-lock-variable-name-face)))))
+
+(defun stickyfunc-enhance--function-argument-separator ()
   (cond
    ((or (eq major-mode 'c-mode)
         (eq major-mode 'c++-mode))
     ",")
-   ((eq major-mode 'emacs-lisp-mode)
+   ((or (eq major-mode 'emacs-lisp-mode)
+        (eq major-mode 'python-mode))
     " ")
    (t ",")))
 
-(defun semantic--replace-match-text (tag)
+(defun stickyfunc-enhance--replace-match-text (tag)
   (cond
    ((or (eq major-mode 'c-mode)
         (eq major-mode 'c++-mode))
@@ -68,7 +88,7 @@ If there is no function, disable the header line."
     (concat "(" (propertize (semantic-tag-name tag) 'face 'font-lock-function-name-face) " "))
    (t "(")))
 
-(defun semantic--parameters-regexp (tag)
+(defun stickyfunc-enhance--parameters-regexp (tag)
   (cond
    ((or (eq major-mode 'c-mode)
         (eq major-mode 'c++-mode))
@@ -77,7 +97,7 @@ If there is no function, disable the header line."
     "(.*)")
    (t "(.*)")))
 
-(defun semantic--tags-out-of-screen (tags parent-tag)
+(defun stickyfunc-enhance--tags-out-of-screen (tags parent-tag)
   (let ((start-line (line-number-at-pos (window-start))))
     (remove-if (lambda (tag)
                  (>= (line-number-at-pos (if (listp tag)
