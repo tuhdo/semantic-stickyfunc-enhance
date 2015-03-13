@@ -2,7 +2,7 @@
 
 This package is an improvement of stock `semantic-stickyfunc-mode` in
 [Semantic](https://www.gnu.org/software/emacs/manual/html_node/semantic/index.html#Top),
-- a parser framework bundled with Emacs. `semantic-stickyfunc-mode`
+a parser framework bundled with Emacs. `semantic-stickyfunc-mode`
 shows function interface/class/namespace that has part of it at the
 top of current visible screen. However, the mode has some limitations
 and this package tries to improve it. To visually see the mode in
@@ -18,7 +18,7 @@ action, please look at the next section.
   parameters. Current `semantic-stickyfunc-mode` only displays
   parameter names but not its associated values. This package does.
 
-A demo in C/C++:
+A demo in C:
 
 ![semantic-stickyfunc-enhance-c-cpp](demos/semantic-stickyfunc-enhance-c-cpp.gif)
 
