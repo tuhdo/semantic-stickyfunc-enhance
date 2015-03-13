@@ -44,6 +44,29 @@
 ;;
 ;;; Code:
 (require 'cl)
+(require 'cc-mode)
+(require 'semantic)
+(if (not (version< emacs-version "24.4"))
+    (require 'subr-x)
+  (defsubst string-trim (string)
+    "Remove leading and trailing whitespace from STRING."
+    (string-trim-left (string-trim-right string)))
+
+  (defsubst string-empty-p (string)
+    "Check whether STRING is empty."
+    (string= string ""))
+
+  (defsubst string-trim-left (string)
+    "Remove leading whitespace from STRING."
+    (if (string-match "\\`[ \t\n\r]+" string)
+        (replace-match "" t t string)
+      string))
+
+  (defsubst string-trim-right (string)
+    "Remove trailing whitespace from STRING."
+    (if (string-match "[ \t\n\r]+\\'" string)
+        (replace-match "" t t string)
+      string)))
 
 (defun semantic-stickyfunc-fetch-stickyline ()
   "Make the function at the top of the current window sticky.
@@ -67,7 +90,7 @@ If there is no function, disable the header line."
                       (if semantic-stickyfunc-show-only-functions-p ""
                         (buffer-substring (point-at-bol) (point-at-eol))))
                   (setq param-tags (semantic-tag-function-arguments tag))
-                  (setq filtered-tags (semantic--tags-out-of-screen param-tags tag)) ;
+                  (setq filtered-tags (stickyfunc-enhance--tags-out-of-screen param-tags tag)) ;
                   (setq tmp-str (semantic-format-tag-prototype tag nil t))
                   (if (and (= (length param-tags) (length filtered-tags))
                            (not (eq major-mode 'python-mode)))
