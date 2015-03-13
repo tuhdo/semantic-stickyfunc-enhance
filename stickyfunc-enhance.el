@@ -68,6 +68,7 @@
         (replace-match "" t t string)
       string)))
 
+;;;###autoload
 (defun semantic-stickyfunc-fetch-stickyline ()
   "Make the function at the top of the current window sticky.
 Capture its function declaration, and place it in the header line.
