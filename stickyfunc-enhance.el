@@ -2,7 +2,7 @@
 ;;
 ;; Filename: stickyfunc-enhance.el
 ;; Description: An enhancement to `semantic-stickyfunc-mode'
-;; Author: Tu, Do Hoang <tuhdo1710@gmail.com
+;; Author: Tu, Do Hoang <tuhdo1710@gmail.com>
 ;; URL      : https://github.com/tuhdo/semantic-stickyfunc-enhance
 ;; Maintainer: Tu, Do Hoang
 ;; Created: Friday March 13
