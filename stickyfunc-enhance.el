@@ -44,7 +44,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Code:
-(require 'cl)
+(require 'cl-lib)
 (require 'cc-mode)
 (require 'semantic)
 (if (not (version< emacs-version "24.4"))
@@ -192,18 +192,19 @@ TAGS are a list of tags that are function parameters of PARENT-TAG.
 
 PARENT-TAG is a function."
   (let ((start-line (line-number-at-pos (window-start))))
-    (remove-if (lambda (tag)
-                 (>= (line-number-at-pos (if (listp tag)
-                                             (semantic-tag-start tag)
-                                           (save-excursion
-                                             (goto-char (semantic-tag-start parent-tag))
-                                             (search-forward tag)
-                                             (point))))
-                     start-line))
-               tags)))
+    (cl-remove-if (lambda (tag)
+                    (>= (line-number-at-pos (if (listp tag)
+                                                (semantic-tag-start tag)
+                                              (save-excursion
+                                                (goto-char (semantic-tag-start parent-tag))
+                                                (search-forward tag)
+                                                (point))))
+                        start-line))
+                  tags)))
+
 (provide 'stickyfunc-enhance)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; stickyfunc-enhance.el ends here
 ;; Local Variables:
-;; byte-compile-warnings: (not cl-functions)
+;; byte-compile-warnings: t
 ;; End:
